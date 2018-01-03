@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--配置自定义realm-->
+    <bean id="myRealm" class="com.spring_shiro.realm.MyRealm"/>
+
+    <!--配置securityManager-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myRealm"/>
+    </bean>
+
+
+    <!--表单认证过滤器：用于form表单的身份验证过滤器，可以不配置；不配置将使用默认配置，建议最好配置一下-->
+    <bean id="authenticationFilter" class="org.apache.shiro.web.filter.authc.FormAuthenticationFilter">
+        <!--设定表单中的账号input的name属性-->
+        <property name="usernameParam" value="usercode"/>
+        <!--设定表单中的密码的input的name属性-->
+        <property name="passwordParam" value="password"/>
+        <!--用户登录地址-->
+        <property name="loginUrl" value="/loginsubmit"/>
+    </bean>
+
+
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+        <property name="securityManager" ref="securityManager"/>
+        <!--登录页面的地址-->
+        <property name="loginUrl" value="/login"/>
+        <!--配置自定义的过滤器-->
+        <property name="filters" >
+            <map>
+                <entry key="authc" value-ref="authenticationFilter"/>
+            </map>
+        </property>
+        <!--过滤器定义：具体配置需要拦截那些url，以及访问该url使用食肉的那个filter-->
+        <property name="filterChainDefinitions">
+            <value>
+                /js/**=anon
+                /img/**=anon
+                /css/**=anon
+                <!--登录认证的地址，如果进行了自定义，需要和自定义的loginURL保持一致-->
+                /loginsubmit=authc
+
+                /logout=logout
+
+                <!--测试授权-->
+                /item=roles[CEO],authc
+
+                <!--需要进行认证/记住我认证通过才能访问的地址-->
+                /**=user
+            </value>
+        </property>
+
+
+    </bean>
+
+</beans>
